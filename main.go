@@ -23,6 +23,8 @@ func main() {
 	// 初始化数据库
 	common.InitMysql()
 
+	//
+
 	// 注册所有路由
 	r := routes.InitRoutes()
 

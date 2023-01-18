@@ -28,7 +28,7 @@ func (u UserService) GetUserById(request req_user.InfoRequest) (resp_user.InfoRe
 	infoResponse := resp_user.InfoResponse{}
 
 	if i2 != nil {
-		log.Printf("格式转化错误: %v", request)
+		log.Printf("GetUserById|格式转化错误|%v,", request)
 		return infoResponse, i2
 	}
 
