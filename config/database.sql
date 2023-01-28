@@ -13,8 +13,8 @@ create table if not exists tb_user
     `follower_count` bigint   default 0 comment '粉丝总数',
     `create_time`    DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time`    DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
-    ) ENGINE = InnoDB,
-    DEFAULT CHARSET = utf8mb4, comment '用户表';
+) ENGINE = InnoDB,
+  DEFAULT CHARSET = utf8mb4, comment '用户表';
 
 
 create table if not exists tb_video
@@ -24,23 +24,24 @@ create table if not exists tb_video
     `title`         varchar(255) not null comment '视频标题',
     `play_url`      varchar(512) not null comment '播放地址',
     `cover_url`     varchar(512) not null comment '视频封面地址',
+    favorite_count  bigint                default 0 null comment '点赞数量',
     `comment_count` bigint       not null default 0 comment '视频的评论总数',
     `create_time`   DATETIME              DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time`   DATETIME              DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
-    ) ENGINE = InnoDB,
-    DEFAULT CHARSET = utf8mb4, comment '视频表';
+) ENGINE = InnoDB,
+  DEFAULT CHARSET = utf8mb4, comment '视频表';
 
 create table if not exists tb_like
 (
     `like_id`     bigint primary key auto_increment comment '点赞id',
-    `user_id`     bigint  not null comment '用户id',
-    `video_id`    bigint  not null comment '视频id',
+    `user_id`     bigint not null comment '用户id',
+    `video_id`    bigint not null comment '视频id',
 
 
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
 ) ENGINE = InnoDB,
-    DEFAULT CHARSET = utf8mb4, comment '点赞表';
+  DEFAULT CHARSET = utf8mb4, comment '点赞表';
 
 create table if not exists tb_comment
 (
@@ -53,8 +54,8 @@ create table if not exists tb_comment
 
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
-    ) ENGINE = InnoDB,
-    DEFAULT CHARSET = utf8mb4, comment '评论表';
+) ENGINE = InnoDB,
+  DEFAULT CHARSET = utf8mb4, comment '评论表';
 
 create table if not exists tb_relation
 (
@@ -66,7 +67,7 @@ create table if not exists tb_relation
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
 ) ENGINE = InnoDB,
-    DEFAULT CHARSET = utf8mb4, comment '关注表';
+  DEFAULT CHARSET = utf8mb4, comment '关注表';
 
 
 create table if not exists tb_message
@@ -77,5 +78,5 @@ create table if not exists tb_message
     `content`     varchar(255) not null comment '消息内容',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
-    ) ENGINE = InnoDB,
-    DEFAULT CHARSET = utf8mb4, comment '关注表';
+) ENGINE = InnoDB,
+  DEFAULT CHARSET = utf8mb4, comment '关注表';
