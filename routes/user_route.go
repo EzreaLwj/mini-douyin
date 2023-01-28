@@ -11,7 +11,8 @@ func InitUserRoutes(r *gin.RouterGroup) gin.IRoutes {
 	router := r.Group("/user")
 
 	{
-		router.GET("", userController.GetUserInfo)
+		router.GET("/", userController.GetUserInfo)
+		router.POST("/login/", userController.UserLogin)
 	}
 
 	return r

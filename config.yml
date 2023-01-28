@@ -1,10 +1,10 @@
 system:
   # 设定模式(debug/release/test,正式版改为release)
-  mode: debug
+  mode: release
   # url前缀
   url-path-prefix: /douyin
   # 主机名
-  host: localhost
+  host: 192.168.1.105
   # 程序监听端口
   port: 8080
 
@@ -12,7 +12,7 @@ mysql:
   # 用户名
   username: root
   # 密码
-  password: xxx
+  password: ezreal
   # 数据库名
   database: mini_douyin
   # 主机地址

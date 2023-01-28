@@ -2,7 +2,7 @@ package repository
 
 import (
 	"log"
-	"mini-douyin/common"
+	"mini-douyin/config"
 	"mini-douyin/model/domain"
 )
 
@@ -21,9 +21,8 @@ func NewUserRepository() IUserRepository {
 
 // GetUserById 获取单个用户
 func (ur UserRepository) GetUserById(id int64) (domain.User, error) {
-	log.Printf("GetUserById---")
 	log.Printf("GetUserById|获取用户信息|%v", id)
 	var user domain.User
-	err := common.DB.Where("user_id = ?", id).First(&user).Error
+	err := config.DB.Where("user_id = ?", id).First(&user).Error
 	return user, err
 }

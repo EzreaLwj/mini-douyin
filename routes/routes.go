@@ -16,6 +16,10 @@ func InitRoutes() *gin.Engine {
 	group := engine.Group(config.Conf.System.UrlPathPrefix)
 
 	InitUserRoutes(group)
+	InitVideoRoute(group)
+	InitFavoriteRoutes(group)
+	InitCommentRoutes(group)
+	InitRelationRoutes(group)
 
 	return engine
 }
