@@ -3,6 +3,7 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	"mini-douyin/controller"
+	"mini-douyin/middleware"
 )
 
 func InitVideoRoute(r *gin.RouterGroup) gin.IRoutes {
@@ -11,8 +12,8 @@ func InitVideoRoute(r *gin.RouterGroup) gin.IRoutes {
 
 	{
 		router.GET("/feed/", videoController.FeedVideo)
-		router.POST("/publish/action/", videoController.PostVideo)
-		router.GET("/publish/list/", videoController.ListVideo)
+		router.POST("/publish/action/", middleware.AuthMiddleware(), videoController.PostVideo)
+		router.GET("/publish/list/", middleware.AuthMiddleware(), videoController.ListVideo)
 	}
 
 	return r

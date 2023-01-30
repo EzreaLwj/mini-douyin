@@ -4,14 +4,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"mini-douyin/model/request"
-	"mini-douyin/model/response"
 	"mini-douyin/service"
 	"net/http"
 )
 
 type IUserController interface {
-	GetUserInfo(c *gin.Context) // 获取当前登录用户信息
-	UserLogin(c *gin.Context)   // 用户登录
+	GetUserInfo(c *gin.Context)  // 获取当前登录用户信息
+	UserLogin(c *gin.Context)    // 用户登录
+	UserRegister(c *gin.Context) // 用户注册
 }
 
 type UserController struct {
@@ -28,6 +28,7 @@ func NewUserController() IUserController {
 // GetUserInfo 获取用户信息
 func (uc UserController) GetUserInfo(c *gin.Context) {
 	var userInfo request.InfoRequest
+
 	err := c.ShouldBindQuery(&userInfo)
 	if err != nil {
 		log.Printf("参数错误: %v", err)
@@ -48,13 +49,18 @@ func (uc UserController) UserLogin(c *gin.Context) {
 		log.Printf("参数错误: %v", err)
 		return
 	}
+	loginResponse := uc.UserService.UserLogin(&userLogin)
+	c.JSON(http.StatusOK, loginResponse)
+}
 
-	c.JSON(http.StatusOK, response.LoginResponse{
-		Response: response.Response{
-			StatusCode: 0,
-			StatusMsg:  "success",
-		},
-		UserId: 1,
-		Token:  "ezreal",
-	})
+// UserRegister 用户注册
+func (uc UserController) UserRegister(c *gin.Context) {
+	var userRegister request.UserRegisterRequest
+	err := c.ShouldBindQuery(&userRegister)
+	if err != nil {
+		log.Printf("参数错误: %v", err)
+		return
+	}
+	registerResponse := uc.UserService.UserRegister(userRegister)
+	c.JSON(http.StatusOK, registerResponse)
 }

@@ -36,8 +36,6 @@ create table if not exists tb_like
     `like_id`     bigint primary key auto_increment comment '点赞id',
     `user_id`     bigint not null comment '用户id',
     `video_id`    bigint not null comment '视频id',
-
-
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
 ) ENGINE = InnoDB,
@@ -50,8 +48,6 @@ create table if not exists tb_comment
     `video_id`    bigint       not null comment '视频id',
     `content`     varchar(255) not null comment '评论内容',
     `create_date` date         not null comment '评论发布日期',
-
-
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
 ) ENGINE = InnoDB,
@@ -62,8 +58,6 @@ create table if not exists tb_relation
     `relation_id` bigint primary key auto_increment comment '关注id',
     `user_id`     bigint not null comment '用户id',
     `to_user_id`  bigint not null comment '被关注者id',
-
-
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
 ) ENGINE = InnoDB,

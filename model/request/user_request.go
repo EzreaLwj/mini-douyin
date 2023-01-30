@@ -6,6 +6,11 @@ type InfoRequest struct {
 }
 
 type UserLoginRequest struct {
-	UserName string `form:"username" json:"username"`
-	Password string `form:"password" json:"password"`
+	UserName string `form:"username" json:"username" binding:"required"`
+	Password string `form:"password" json:"password" binding:"required"`
+}
+
+type UserRegisterRequest struct {
+	UserName string `form:"username" json:"username" binding:"required"`
+	Password string `form:"password" json:"password" binding:"required"`
 }

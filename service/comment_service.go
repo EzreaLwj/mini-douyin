@@ -12,7 +12,7 @@ import (
 )
 
 type ICommentService interface {
-	CommentPost(commentPostRequest request.CommentPostRequest) response.CommentPostResponse
+	CommentPost(userId int64, commentPostRequest request.CommentPostRequest) response.CommentPostResponse
 	ListComment(commentListRequest request.CommentListRequest) response.CommentListResponse
 }
 
@@ -72,8 +72,7 @@ func (c CommentService) ListComment(commentListRequest request.CommentListReques
 }
 
 // CommentPost 发表评论
-func (c CommentService) CommentPost(commentPostRequest request.CommentPostRequest) response.CommentPostResponse {
-	var userId int64 = 1
+func (c CommentService) CommentPost(userId int64, commentPostRequest request.CommentPostRequest) response.CommentPostResponse {
 	var userResponse response.User
 	user, err := c.UserRepository.GetUserById(userId)
 	if err != nil {

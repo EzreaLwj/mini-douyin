@@ -40,8 +40,16 @@ func (v VideoController) PostVideo(c *gin.Context) {
 		})
 		return
 	}
-
-	videoPostResponse := v.VideoService.PostVideo(&postRequest, c)
+	value, exists := c.Get("userId")
+	if exists {
+		c.JSON(http.StatusOK, response.VideoPostResponse{
+			Response: response.Response{
+				StatusCode: 1,
+				StatusMsg:  "userId 不存在",
+			},
+		})
+	}
+	videoPostResponse := v.VideoService.PostVideo(value.(int64), &postRequest, c)
 	c.JSON(http.StatusOK, videoPostResponse)
 }
 
@@ -77,6 +85,6 @@ func (v VideoController) FeedVideo(c *gin.Context) {
 		})
 		return
 	}
-	video := v.VideoService.FeedVideo(&videoRequest)
+	video := v.VideoService.FeedVideo(c, &videoRequest)
 	c.JSON(http.StatusOK, video)
 }

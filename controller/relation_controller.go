@@ -51,7 +51,9 @@ func (r RelationController) FollowAction(c *gin.Context) {
 		log.Printf("FollowAction|参数错误|%v", err)
 		return
 	}
-	actionResponse := r.RelationService.FollowAction(followActionRequest)
+	value, _ := c.Get("userId")
+
+	actionResponse := r.RelationService.FollowAction(value.(int64), followActionRequest)
 	c.JSON(http.StatusOK, actionResponse)
 }
 

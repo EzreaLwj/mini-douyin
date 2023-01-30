@@ -33,7 +33,8 @@ func (f FavoriteController) FavoriteAction(c *gin.Context) {
 		return
 	}
 
-	f.FavoriteService.FavoriteAction(favoriteRequest)
+	value, _ := c.Get("userId")
+	f.FavoriteService.FavoriteAction(value.(int64), favoriteRequest)
 
 	c.JSON(http.StatusOK, response.FavoriteActionResponse{
 		Response: response.Response{StatusCode: 0, StatusMsg: "success"},

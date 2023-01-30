@@ -9,10 +9,21 @@ type IFavoriteRepository interface {
 	AddFavoriteItem(like domain.Like) error               // 增加点赞记录
 	DeleteFavoriteItem(userId int64, videoId int64) error // 取消点赞记录
 	GetUserLikeVideoId(useId int64) ([]domain.Like, error)
+	CheckIsLike(userid int64, id2 int64) (bool, error)
 }
 
 // FavoriteRepository UserRepository 定义一个结构体
 type FavoriteRepository struct {
+}
+
+// CheckIsLike 检查视频是否被点赞
+func (f FavoriteRepository) CheckIsLike(userId int64, videoId int64) (bool, error) {
+	var count int64 = 0
+	err := config.DB.Table("tb_like").Where("user_id = ? and video_id = ?", userId, videoId).Count(&count).Error
+	if count == 0 {
+		return false, err
+	}
+	return true, err
 }
 
 func (f FavoriteRepository) GetUserLikeVideoId(useId int64) ([]domain.Like, error) {

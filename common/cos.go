@@ -15,14 +15,14 @@ var COSCLIENT *cos.Client
 // InitCOSClient 初始化COS
 func InitCOSClient() {
 
-	u, _ := url.Parse("xxx")
-	su, _ := url.Parse("xxx")
+	u, _ := url.Parse("https://ezreal-mini-douyin-1312880100.cos.ap-guangzhou.myqcloud.com")
+	su, _ := url.Parse("https://cos.ap-guangzhou.myqcloud.com")
 	b := &cos.BaseURL{BucketURL: u, ServiceURL: su}
 
 	client := cos.NewClient(b, &http.Client{
 		Transport: &cos.AuthorizationTransport{
-			SecretID:  os.Getenv("xxx"), // 用户的 SecretId，建议使用子账号密钥，授权遵循最小权限指引，降低使用风险。子账号密钥获取可参考 https://cloud.tencent.com/document/product/598/37140
-			SecretKey: os.Getenv("xxx"), // 用户的 SecretKey，建议使用子账号密钥，授权遵循最小权限指引，降低使用风险。子账号密钥获取可参考 https://cloud.tencent.com/document/product/598/37140
+			SecretID:  os.Getenv("AKIDVyY2QccOwHSQCl6E8qKNEtLcfYEhx2tX"), // 用户的 SecretId，建议使用子账号密钥，授权遵循最小权限指引，降低使用风险。子账号密钥获取可参考 https://cloud.tencent.com/document/product/598/37140
+			SecretKey: os.Getenv("RgiV4QaXFi075rTuAHAtNVSGtTt64oNj"),     // 用户的 SecretKey，建议使用子账号密钥，授权遵循最小权限指引，降低使用风险。子账号密钥获取可参考 https://cloud.tencent.com/document/product/598/37140
 		},
 	})
 	COSCLIENT = client

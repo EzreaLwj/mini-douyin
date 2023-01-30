@@ -36,8 +36,8 @@ func (c2 CommentController) CommentPost(c *gin.Context) {
 		log.Printf("PostComment|参数错误|%v", postRequest)
 		return
 	}
-
-	commentPostResponse := c2.CommentService.CommentPost(postRequest)
+	value, _ := c.Get("userId")
+	commentPostResponse := c2.CommentService.CommentPost(value.(int64), postRequest)
 	c.JSON(http.StatusOK, commentPostResponse)
 }
 

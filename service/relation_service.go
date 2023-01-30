@@ -10,9 +10,9 @@ import (
 )
 
 type IRelationService interface {
-	FollowAction(request request.FollowActionRequest) response.FollowActionResponse      // 关注操作
-	GetFollow(followerRequest request.GetFollowerRequest) response.GetFollowerResponse   // 获取关注者
-	GetFollower(followerRequest request.GetFollowerRequest) response.GetFollowerResponse // 获取粉丝
+	FollowAction(userId int64, request request.FollowActionRequest) response.FollowActionResponse // 关注操作
+	GetFollow(followerRequest request.GetFollowerRequest) response.GetFollowerResponse            // 获取关注者
+	GetFollower(followerRequest request.GetFollowerRequest) response.GetFollowerResponse          // 获取粉丝
 
 }
 
@@ -94,8 +94,7 @@ func (r RelationService) GetFollow(followerRequest request.GetFollowerRequest) r
 }
 
 // FollowAction 关注操作
-func (r RelationService) FollowAction(followActionRequest request.FollowActionRequest) response.FollowActionResponse {
-	var userId int64 = 1
+func (r RelationService) FollowAction(userId int64, followActionRequest request.FollowActionRequest) response.FollowActionResponse {
 	toUserId, err := strconv.ParseInt(followActionRequest.ToUserId, 10, 64)
 	if err != nil {
 		log.Printf("FollowAction|格式转换失败|%v", err)

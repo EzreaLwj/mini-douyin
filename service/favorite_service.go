@@ -12,7 +12,7 @@ import (
 )
 
 type IFavoriteService interface {
-	FavoriteAction(favoriteRequest request.FavoriteActionRequest)
+	FavoriteAction(userId int64, favoriteRequest request.FavoriteActionRequest)
 	FavoriteVideoList(r *request.ListRequest) response.VideoList // 点赞操作
 }
 
@@ -67,19 +67,18 @@ func (f FavoriteService) FavoriteVideoList(r *request.ListRequest) response.Vide
 }
 
 // FavoriteAction 点赞操作
-func (f FavoriteService) FavoriteAction(favoriteRequest request.FavoriteActionRequest) {
-	var userId int64 = 1
+func (f FavoriteService) FavoriteAction(userId int64, favoriteRequest request.FavoriteActionRequest) {
 	actionType := favoriteRequest.ActionType
 	videoId, err := strconv.ParseInt(favoriteRequest.VideoId, 10, 64)
 	if err != nil {
 		log.Printf("FavoriteAction|格式转换错误|%v", err)
 	}
-	config.DB.Begin()
+	begin := config.DB.Begin()
 	if actionType == "1" {
 		err := f.VideoRepository.IncreaseFavoriteCount(videoId)
 		if err != nil {
 			log.Printf("FavoriteAction|点赞失败|%v", err)
-			config.DB.Rollback()
+			begin.Rollback()
 			return
 		}
 
@@ -89,7 +88,7 @@ func (f FavoriteService) FavoriteAction(favoriteRequest request.FavoriteActionRe
 		})
 		if err != nil {
 			log.Printf("FavoriteAction|点赞失败|%v", err)
-			config.DB.Rollback()
+			begin.Rollback()
 			return
 		}
 
@@ -97,19 +96,19 @@ func (f FavoriteService) FavoriteAction(favoriteRequest request.FavoriteActionRe
 		err := f.VideoRepository.DecreaseFavoriteCount(videoId)
 		if err != nil {
 			log.Printf("FavoriteAction|取消点赞失败|%v", err)
-			config.DB.Rollback()
+			begin.Rollback()
 			return
 		}
 		err = f.FavoriteRepository.DeleteFavoriteItem(userId, videoId)
 		if err != nil {
 			log.Printf("FavoriteAction|取消点赞失败|%v", err)
-			config.DB.Rollback()
+			begin.Rollback()
 			return
 		}
 	} else {
 		log.Printf("FavoriteAction|参数错误|actionType=%v", actionType)
 	}
-	config.DB.Commit()
+	begin.Commit()
 }
 
 func NewFavoriteService() IFavoriteService {
