@@ -34,6 +34,7 @@ func (uc UserController) GetUserInfo(c *gin.Context) {
 		log.Printf("参数错误: %v", err)
 		return
 	}
+
 	infoResponse, err := uc.UserService.GetUserById(userInfo)
 	if err != nil {
 		return

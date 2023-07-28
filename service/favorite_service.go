@@ -51,13 +51,14 @@ func (f FavoriteService) FavoriteVideoList(r *request.ListRequest) response.Vide
 	}
 
 	videosResponse := make([]response.Video, len(videos))
+
 	err = copier.Copy(&videosResponse, &videos)
 	if err != nil {
 		log.Printf("拷贝失败")
 		return response.VideoList{}
 	}
-	for _, video := range videosResponse {
-		video.User = userResponse
+	for i := range videosResponse {
+		videosResponse[i].User = userResponse
 	}
 
 	return response.VideoList{

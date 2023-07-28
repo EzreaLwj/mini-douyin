@@ -9,10 +9,10 @@ import (
 )
 
 type IRelationController interface {
-	FollowAction(c *gin.Context) // 关注操作
-	GetFollow(c *gin.Context)    // 获取关注的人
-	GetFollower(c *gin.Context)  // 获取粉丝
-
+	FollowAction(c *gin.Context)  // 关注操作
+	GetFollow(c *gin.Context)     // 获取关注的人
+	GetFollower(c *gin.Context)   // 获取粉丝
+	GetFriendList(c *gin.Context) // 获取朋友列表
 }
 
 type RelationController struct {
@@ -54,6 +54,19 @@ func (r RelationController) FollowAction(c *gin.Context) {
 	value, _ := c.Get("userId")
 
 	actionResponse := r.RelationService.FollowAction(value.(int64), followActionRequest)
+	c.JSON(http.StatusOK, actionResponse)
+}
+
+func (r RelationController) GetFriendList(c *gin.Context) {
+	var getFriendListRequest request.GetFriendListRequest
+	err := c.ShouldBindQuery(&getFriendListRequest)
+	if err != nil {
+		log.Printf("FollowAction|参数错误|%v", err)
+		return
+	}
+	value, _ := c.Get("userId")
+
+	actionResponse := r.RelationService.GetFriendList(value.(int64), getFriendListRequest)
 	c.JSON(http.StatusOK, actionResponse)
 }
 

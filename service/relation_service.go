@@ -10,9 +10,10 @@ import (
 )
 
 type IRelationService interface {
-	FollowAction(userId int64, request request.FollowActionRequest) response.FollowActionResponse // 关注操作
-	GetFollow(followerRequest request.GetFollowerRequest) response.GetFollowerResponse            // 获取关注者
-	GetFollower(followerRequest request.GetFollowerRequest) response.GetFollowerResponse          // 获取粉丝
+	FollowAction(userId int64, request request.FollowActionRequest) response.FollowActionResponse    // 关注操作
+	GetFollow(followerRequest request.GetFollowerRequest) response.GetFollowerResponse               // 获取关注者
+	GetFollower(followerRequest request.GetFollowerRequest) response.GetFollowerResponse             // 获取粉丝
+	GetFriendList(userId int64, request request.GetFriendListRequest) response.GetFriendListResponse // 获取朋友列表
 
 }
 
@@ -110,6 +111,43 @@ func (r RelationService) FollowAction(userId int64, followActionRequest request.
 	}
 }
 
+// GetFriendList 获取朋友列表
+func (r RelationService) GetFriendList(userId int64, getFriendListRequest request.GetFriendListRequest) response.GetFriendListResponse {
+	userId, err := strconv.ParseInt(getFriendListRequest.UserId, 10, 64)
+	if err != nil {
+		log.Printf("GetFollow|格式转换失败|%v", err)
+		return response.GetFriendListResponse{}
+	}
+
+	relations, err := r.RelationRepository.GetFollower(userId)
+
+	if err != nil {
+		log.Printf("GetFollow|数据库错误|%v", err)
+		return response.GetFriendListResponse{}
+	}
+
+	var getFriendListResponse response.GetFriendListResponse
+	for _, relation := range relations {
+		userId := relation.UserId
+		user, err := r.UserRepository.GetUserById(userId)
+		if err != nil {
+			log.Printf("GetFollow|数据库错误|%v", err)
+			return response.GetFriendListResponse{}
+		}
+		var responseUser response.User
+		_ = copier.Copy(&responseUser, &user)
+
+		getFriendListResponse.UserList = append(getFriendListResponse.UserList, responseUser)
+	}
+
+	getFriendListResponse.Response = response.Response{
+		StatusCode: 0,
+		StatusMsg:  "success",
+	}
+
+	return getFriendListResponse
+
+}
 func NewRelationService() IRelationService {
 	relationService := RelationService{RelationRepository: repository.NewRelationRepository(), UserRepository: repository.NewUserRepository()}
 	return relationService

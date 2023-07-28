@@ -15,6 +15,7 @@ func InitRelationRoutes(r *gin.RouterGroup) gin.IRoutes {
 		router.GET("/follower/list/", middleware.AuthMiddleware(), relationController.GetFollower)
 		router.GET("/follow/list/", middleware.AuthMiddleware(), relationController.GetFollow)
 		router.POST("/action/", middleware.AuthMiddleware(), relationController.FollowAction)
+		router.GET("/friend/list", middleware.AuthMiddleware(), relationController.GetFriendList)
 	}
 
 	return r

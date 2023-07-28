@@ -10,3 +10,8 @@ type GetFollowerRequest struct {
 	Token  string `json:"token" form:"token"  binding:"required"`
 	UserId string `json:"user_id" form:"user_id"  binding:"required"`
 }
+
+type GetFriendListRequest struct {
+	Token  string `json:"token" form:"token"  binding:"required"`
+	UserId string `json:"user_id" form:"user_id"  binding:"required"`
+}
