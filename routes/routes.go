@@ -20,6 +20,6 @@ func InitRoutes() *gin.Engine {
 	InitFavoriteRoutes(group)
 	InitCommentRoutes(group)
 	InitRelationRoutes(group)
-
+	InitChatRoutes(group)
 	return engine
 }
