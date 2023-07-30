@@ -11,15 +11,22 @@ type IRelationRepository interface {
 	GetFollow(userId int64) ([]domain.Relation, error)   // 获取关注者
 	GetFollower(userId int64) ([]domain.Relation, error) // 获取关注者
 	CheckIsFollow(userId int64, toUserId int64) bool     // 检查是否关注
+	RemoveFollow(userId int64, toUserId int64) error     //取消关注
 }
 
 type RelationRepository struct {
 }
 
+func (r RelationRepository) RemoveFollow(userId int64, toUserId int64) error {
+	var relation domain.Relation
+	err := config.DB.Table("tb_relation").Where("user_id = ? and to_user_id = ?", userId, toUserId).Delete(&relation).Error
+	return err
+}
+
 // CheckIsFollow 检查是否被关注
 func (r RelationRepository) CheckIsFollow(userId int64, toUserId int64) bool {
 	var count int64
-	err := config.DB.Table("t_relation").Where("user_id = ? and to_user_id = ?", userId, toUserId).Count(&count).Error
+	err := config.DB.Table("tb_relation").Where("user_id = ? and to_user_id = ?", userId, toUserId).Count(&count).Error
 	if err != nil {
 		log.Printf("CheckIsFollow|数据库获取数量错误|%v", err)
 		return false

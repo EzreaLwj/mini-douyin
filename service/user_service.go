@@ -18,13 +18,18 @@ type IUserService interface {
 }
 
 type UserService struct {
-	UserRepository repository.IUserRepository
+	UserRepository     repository.IUserRepository
+	RelationRepository repository.IRelationRepository
 }
 
 // NewUserService  构造函数
 func NewUserService() IUserService {
 	userRepository := repository.NewUserRepository()
-	userService := UserService{UserRepository: userRepository}
+	relationRepository := repository.NewRelationRepository()
+	userService := UserService{
+		UserRepository:     userRepository,
+		RelationRepository: relationRepository,
+	}
 	return userService
 }
 
@@ -71,7 +76,8 @@ func (u UserService) UserLogin(r *request.UserLoginRequest) response.LoginRespon
 
 // GetUserById 根据id获取用户信息
 func (u UserService) GetUserById(request request.InfoRequest) (response.InfoResponse, error) {
-	id, i2 := strconv.Atoi(request.UserId)
+	userId := request.UserId
+	id, i2 := strconv.Atoi(userId)
 	infoResponse := response.InfoResponse{}
 
 	if i2 != nil {
@@ -83,6 +89,7 @@ func (u UserService) GetUserById(request request.InfoRequest) (response.InfoResp
 
 	var useResponse response.User
 	err := copier.Copy(&useResponse, &userInfo)
+	useResponse.TotalFavorited = strconv.FormatInt(userInfo.UserId, 10)
 	if err != nil {
 		log.Printf("GetUserById|类型转换错误|%v", err)
 		return response.InfoResponse{}, err
@@ -90,7 +97,7 @@ func (u UserService) GetUserById(request request.InfoRequest) (response.InfoResp
 	infoResponse.User = useResponse
 	infoResponse.StatusMsg = "success"
 	infoResponse.StatusCode = 0
-	infoResponse.User.IsFollow = true
+	infoResponse.User.IsFollow = u.RelationRepository.CheckIsFollow(int64(id), int64(id))
 	marshal, i2 := json.Marshal(infoResponse)
 	log.Printf("GetUserById|用户信息为|%v", string(marshal))
 	return infoResponse, nil
@@ -115,15 +122,19 @@ func (u UserService) UserRegister(userRegisterRequest request.UserRegisterReques
 			Response: response.Response{StatusCode: 1, StatusMsg: "创建失败"},
 		}
 	}
-	token, err := jwt.GenToken(user.UserId)
+	log.Printf("UserRegister|用户注册|%v", user)
+
+	// create token
+	userId, err := u.UserRepository.QueryUserIdByUserName(user.UserName)
+	token, err := jwt.GenToken(userId)
 	if err != nil {
 		log.Printf("UserRegister|token获取失败|%v", err)
 		return response.RegisterResponse{}
 	}
-	log.Printf("UserRegister|用户注册|%v", user)
+
 	return response.RegisterResponse{
 		Response: response.Response{StatusCode: 0, StatusMsg: "创建成功"},
-		UserId:   user.UserId,
+		UserId:   userId,
 		Token:    token,
 	}
 

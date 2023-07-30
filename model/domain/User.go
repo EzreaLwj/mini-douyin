@@ -6,10 +6,10 @@ type User struct {
 	Password        string `gorm:"Column:password" json:"password"`
 	FollowCount     int64  `gorm:"Column:follow_count" json:"follow_count"`
 	FollowerCount   int64  `gorm:"Column:follower_count" json:"follower_count"`
-	Avatar          string ` gorm:"Column:avatar" json:"avatar"`
+	Avatar          string `gorm:"Column:avatar" json:"avatar"`
 	BackgroundImage string `gorm:"Column:background_image"  json:"background_image"`
-	Signature       string `gorm:"Column:signature" json:"signature"`
-	TotalFavorited  string `gorm:"Column:total_favorited" json:"total_favorited"`
+	Signature       string `gorm:"Column:signature;default" json:"signature"`
+	TotalFavorited  int64  `gorm:"Column:total_favorited;default" json:"total_favorited"`
 	WorkCount       int64  `gorm:"Column:work_count" json:"work_count"`
 	FavoriteCount   int64  `gorm:"Column:favorite_count" json:"favorite_count"`
 }

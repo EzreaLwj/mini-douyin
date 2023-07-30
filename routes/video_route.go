@@ -12,7 +12,7 @@ func InitVideoRoute(r *gin.RouterGroup) gin.IRoutes {
 
 	{
 		router.GET("/feed/", videoController.FeedVideo)
-		router.POST("/publish/action/", middleware.AuthMiddleware(), videoController.PostVideo)
+		router.POST("/publish/action/", videoController.PostVideo)
 		router.GET("/publish/list/", middleware.AuthMiddleware(), videoController.ListVideo)
 	}
 

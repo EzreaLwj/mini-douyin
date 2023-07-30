@@ -6,6 +6,7 @@ import (
 	"mini-douyin/model/request"
 	"mini-douyin/model/response"
 	"mini-douyin/service"
+	"mini-douyin/utils/jwt"
 	"net/http"
 )
 
@@ -40,16 +41,21 @@ func (v VideoController) PostVideo(c *gin.Context) {
 		})
 		return
 	}
-	value, exists := c.Get("userId")
-	if exists {
-		c.JSON(http.StatusOK, response.VideoPostResponse{
+	token := postRequest.Token
+	claims, err := jwt.ParseToken(token)
+	if err != nil {
+		log.Printf("PostVideo|token解析错误|%v", err)
+		c.JSON(http.StatusUnauthorized, response.ErrorMessage{
 			Response: response.Response{
+				StatusMsg:  "unauthorized",
 				StatusCode: 1,
-				StatusMsg:  "userId 不存在",
 			},
 		})
+		return
 	}
-	videoPostResponse := v.VideoService.PostVideo(value.(int64), &postRequest, c)
+
+	userID := claims.UserID
+	videoPostResponse := v.VideoService.PostVideo(userID, &postRequest, c)
 	c.JSON(http.StatusOK, videoPostResponse)
 }
 

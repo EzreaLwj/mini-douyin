@@ -5,12 +5,13 @@ import (
 	"github.com/jinzhu/copier"
 	"log"
 	"mini-douyin/common"
+	"mini-douyin/config"
 	"mini-douyin/model/domain"
 	"mini-douyin/model/request"
 	"mini-douyin/model/response"
 	"mini-douyin/repository"
 	"mini-douyin/utils/jwt"
-	"path/filepath"
+	"strconv"
 	"time"
 )
 
@@ -24,6 +25,7 @@ type VideoService struct {
 	VideoRepository    repository.IVideoRepository
 	UserRepository     repository.IUserRepository
 	FavoriteRepository repository.IFavoriteRepository
+	RelationRepository repository.IRelationRepository
 }
 
 // NewVideoService 构造函数
@@ -31,10 +33,12 @@ func NewVideoService() IVideoService {
 	videoRepository := repository.NewVideoRepository()
 	userRepository := repository.NewUserRepository()
 	favoriteRepository := repository.NewFavoriteRepository()
+	relationRepository := repository.NewRelationRepository()
 	videoService := VideoService{
 		VideoRepository:    videoRepository,
 		UserRepository:     userRepository,
 		FavoriteRepository: favoriteRepository,
+		RelationRepository: relationRepository,
 	}
 	return videoService
 }
@@ -42,40 +46,27 @@ func NewVideoService() IVideoService {
 // PostVideo 上传视频
 func (v VideoService) PostVideo(userId int64, r *request.PostRequest, c *gin.Context) response.VideoPostResponse {
 	log.Printf("PostVideo|上传视频|%v", *r)
-	filename := filepath.Base(r.Data.Filename)
-	saveFile := filepath.Join("./public/", filename)
 
-	c.Get("userId")
-	// 保存到本地
-	if err := c.SaveUploadedFile(r.Data, saveFile); err != nil {
-		log.Printf("PostVideo|存储错误|%v", err)
-
-		return response.VideoPostResponse{
-			Response: response.Response{
-				StatusCode: 1,
-				StatusMsg:  err.Error(),
-			},
-		}
-	}
-
-	// todo 可以用消息队列优化
 	// 保存到COS
 	go func() {
 		playUrl := common.SaveFile(r.Data, c)
-		// userId 和 coverUrl先写死
+		begin := config.DB.Begin()
 		videoDomain := domain.Video{
 			UserId:     userId,
 			Title:      r.Title,
 			PlayUrl:    playUrl,
-			CoverUrl:   "https://xingqiu-tuchuang-1256524210.cos.ap-shanghai.myqcloud.com/3874/logo.png",
+			CoverUrl:   "https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a4a30a34927641d88c3745077d2e5fa8~tplv-k3u1fbpfcp-no-mark:240:240:240:160.awebp?",
 			CreateTime: time.Now(),
 			UpdateTime: time.Now(),
 		}
 		err := v.VideoRepository.SaveVideo(&videoDomain)
 		if err != nil {
+			begin.Rollback()
 			log.Printf("PostVideo|数据库保存错误|%v", err)
 			return
 		}
+		v.UserRepository.UpdateWorkCount(userId, true)
+		begin.Commit()
 		log.Printf("PostVideo|视频上传成功|%v", *r)
 	}()
 
@@ -98,8 +89,8 @@ func (v VideoService) ListVideo(r *request.ListRequest) response.VideoList {
 	}
 
 	var responseUser response.User
-
 	err = copier.Copy(&responseUser, &user)
+	responseUser.TotalFavorited = strconv.FormatInt(user.TotalFavorited, 10)
 	if err != nil {
 		log.Printf("ListVideo|格式转换失败|%v", err)
 		return response.VideoList{}
@@ -139,7 +130,9 @@ func (v VideoService) FeedVideo(c *gin.Context, r *request.FeedRequest) response
 		return response.VideoFeedList{}
 	}
 
-	// 解析token
+	/**
+	这里不能在中间件中解析 token, 因为用户没有登录也能看
+	*/
 	var flag bool = false
 	var userId int64
 	token := c.Query("token")
@@ -169,9 +162,18 @@ func (v VideoService) FeedVideo(c *gin.Context, r *request.FeedRequest) response
 
 		var responseUser response.User
 		err = copier.Copy(&responseUser, &user)
+		responseUser.TotalFavorited = strconv.FormatInt(user.TotalFavorited, 10)
 		if err != nil {
 			log.Printf("ListVideo|格式转换失败|%v", err)
 			return response.VideoFeedList{}
+		}
+
+		// 如果没有登录的话，就设置为 false
+		if !flag {
+			responseUser.IsFollow = false
+		} else {
+			follow := v.RelationRepository.CheckIsFollow(userId, toUserid)
+			responseUser.IsFollow = follow
 		}
 		var responseVideo response.Video
 		err = copier.Copy(&responseVideo, &list[index])
@@ -180,7 +182,7 @@ func (v VideoService) FeedVideo(c *gin.Context, r *request.FeedRequest) response
 			return response.VideoFeedList{}
 		}
 
-		// todo 检查是否已经点赞
+		// 如果没有登录的话，就设置为 false
 		if !flag {
 			responseVideo.IsFavorite = false
 		} else {
@@ -201,6 +203,5 @@ func (v VideoService) FeedVideo(c *gin.Context, r *request.FeedRequest) response
 		StatusCode: 0,
 	}
 	videoList.NextTime = time.Now().Unix()
-
 	return videoList
 }

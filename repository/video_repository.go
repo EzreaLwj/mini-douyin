@@ -14,10 +14,17 @@ type IVideoRepository interface {
 	SaveVideo(video *domain.Video) error                             // 保存视频
 	IncreaseFavoriteCount(videoId int64) error                       // 增加点赞数量
 	DecreaseFavoriteCount(videoId int64) error                       // 减少点赞数量
+	GetUserIdByVideoId(videoId int64) int64                          // 获取作者id
 }
 
 // VideoRepository 定义一个结构体
 type VideoRepository struct {
+}
+
+func (v VideoRepository) GetUserIdByVideoId(videoId int64) int64 {
+	var video domain.Video
+	config.DB.Table("tb_video").Select("user_id").Where("video_id = ?", videoId).First(&video)
+	return video.UserId
 }
 
 // GetVideoListByVideoIds 根据id查找视频
@@ -41,7 +48,6 @@ func (v VideoRepository) SaveVideo(video *domain.Video) error {
 
 // GetVideoList 获取某个用户的视频
 func (v VideoRepository) GetVideoListByUserId(userId int64) ([]domain.Video, error) {
-	log.Printf("GetVideoListByUserId|获取用户的视频|%v", userId)
 	var video []domain.Video
 	err := config.DB.Where("user_id = ?", userId).Find(&video).Error
 
@@ -50,7 +56,6 @@ func (v VideoRepository) GetVideoListByUserId(userId int64) ([]domain.Video, err
 
 // FeedVideoList 获取视频流
 func (v VideoRepository) FeedVideoList() ([]domain.Video, error) {
-	log.Printf("FeedVideoList|获取视频流|")
 	var video []domain.Video
 	err := config.DB.Limit(30).Order("create_time desc").Find(&video).Error
 	return video, err
@@ -58,14 +63,12 @@ func (v VideoRepository) FeedVideoList() ([]domain.Video, error) {
 
 // IncreaseFavoriteCount 增加点赞数量
 func (v VideoRepository) IncreaseFavoriteCount(videoId int64) error {
-	log.Printf("IncreaseFavoriteCount|增加点赞数量|")
 	err := config.DB.Table("tb_video").Where("video_id = ?", videoId).UpdateColumn("favorite_count", gorm.Expr("favorite_count + ?", 1)).Error
 	return err
 }
 
 // DecreaseFavoriteCount 减少点赞数量
 func (v VideoRepository) DecreaseFavoriteCount(videoId int64) error {
-	log.Printf("IncreaseFavoriteCount|减少点赞数量|")
 	err := config.DB.Table("tb_video").Where("video_id = ?", videoId).UpdateColumn("favorite_count", gorm.Expr("favorite_count - ?", 1)).Error
 	return err
 }

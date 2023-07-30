@@ -20,7 +20,7 @@ func (c ChatRepository) ListMessage(userId int64, toUserID int64, preMsgTime int
 	var messages []domain.Message
 	timeObj := time.Unix(preMsgTime, 0)
 	formattedTime := timeObj.Format("2006-01-02 15:04:05")
-	err := config.DB.Table("tb_message").Where("user_id = ? and to_user_id = ? and create_time > ? ", userId, toUserID, formattedTime).Order("create_time").Find(&messages).Error
+	err := config.DB.Table("tb_message").Where("user_id = ? and to_user_id = ? and create_time > ? ", userId, toUserID, formattedTime).Or("user_id = ? and to_user_id = ? and create_time > ?", toUserID, userId, formattedTime).Order("create_time").Find(&messages).Error
 	return messages, err
 }
 

@@ -3,6 +3,7 @@ package service
 import (
 	"github.com/jinzhu/copier"
 	"log"
+	"mini-douyin/config"
 	"mini-douyin/model/request"
 	"mini-douyin/model/response"
 	"mini-douyin/repository"
@@ -38,15 +39,18 @@ func (r RelationService) GetFollower(followerRequest request.GetFollowerRequest)
 
 	var followerResponse response.GetFollowerResponse
 	for _, relation := range relations {
-		userId := relation.UserId
-		user, err := r.UserRepository.GetUserById(userId)
+		toUserId := relation.UserId
+		user, err := r.UserRepository.GetUserById(toUserId)
 		if err != nil {
 			log.Printf("GetFollow|数据库错误|%v", err)
 			return response.GetFollowerResponse{}
 		}
+
 		var responseUser response.User
 		_ = copier.Copy(&responseUser, &user)
-
+		responseUser.TotalFavorited = strconv.FormatInt(user.TotalFavorited, 10)
+		follow := r.RelationRepository.CheckIsFollow(userId, toUserId)
+		responseUser.IsFollow = follow
 		followerResponse.UserList = append(followerResponse.UserList, responseUser)
 	}
 
@@ -82,7 +86,8 @@ func (r RelationService) GetFollow(followerRequest request.GetFollowerRequest) r
 		}
 		var responseUser response.User
 		_ = copier.Copy(&responseUser, &user)
-
+		responseUser.TotalFavorited = strconv.FormatInt(user.TotalFavorited, 10)
+		responseUser.IsFollow = r.RelationRepository.CheckIsFollow(userId, toUserId)
 		followerResponse.UserList = append(followerResponse.UserList, responseUser)
 	}
 
@@ -101,11 +106,46 @@ func (r RelationService) FollowAction(userId int64, followActionRequest request.
 		log.Printf("FollowAction|格式转换失败|%v", err)
 		return response.FollowActionResponse{}
 	}
-	err = r.RelationRepository.AddFollow(userId, toUserId)
-	if err != nil {
-		log.Printf("FollowAction|插入数据错误|%v", err)
-		return response.FollowActionResponse{}
+
+	begin := config.DB.Begin()
+	// 关注
+	if followActionRequest.ActionType == "1" {
+		err = r.RelationRepository.AddFollow(userId, toUserId)
+		if err != nil {
+			log.Printf("FollowAction|插入数据错误|%v", err)
+			begin.Rollback()
+			return response.FollowActionResponse{
+				Response: response.Response{StatusCode: 1, StatusMsg: "insert fail"},
+			}
+		}
+
+		// 增加用户的关注数
+		r.UserRepository.UpdateFollowCount(userId, true)
+
+		// 增加用户的获赞总数
+		r.UserRepository.UpdateFollowerCount(toUserId, true)
 	}
+
+	// 取消关注
+	if followActionRequest.ActionType == "2" {
+		err = r.RelationRepository.RemoveFollow(userId, toUserId)
+		if err != nil {
+			log.Printf("FollowAction|删除数据错误|%v", err)
+			begin.Rollback()
+			return response.FollowActionResponse{
+				Response: response.Response{StatusCode: 1, StatusMsg: "delete fail"},
+			}
+		}
+
+		// 减少用户的关注数
+		r.UserRepository.UpdateFollowCount(userId, false)
+
+		// 减少被关注者的粉丝数
+		r.UserRepository.UpdateFollowerCount(toUserId, false)
+	}
+
+	begin.Commit()
+
 	return response.FollowActionResponse{
 		Response: response.Response{StatusCode: 0, StatusMsg: "success"},
 	}

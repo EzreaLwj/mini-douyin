@@ -31,6 +31,7 @@ func (f FavoriteService) FavoriteVideoList(r *request.ListRequest) response.Vide
 	}
 	var userResponse response.User
 	err = copier.Copy(&userResponse, &user)
+	userResponse.TotalFavorited = strconv.FormatInt(user.TotalFavorited, 10)
 	if err != nil {
 		return response.VideoList{}
 	}
@@ -75,7 +76,12 @@ func (f FavoriteService) FavoriteAction(userId int64, favoriteRequest request.Fa
 		log.Printf("FavoriteAction|格式转换错误|%v", err)
 	}
 	begin := config.DB.Begin()
+
+	// 查询作品作者 id
+	workerId := f.VideoRepository.GetUserIdByVideoId(videoId)
 	if actionType == "1" {
+
+		// 增加视频的点赞数量
 		err := f.VideoRepository.IncreaseFavoriteCount(videoId)
 		if err != nil {
 			log.Printf("FavoriteAction|点赞失败|%v", err)
@@ -83,6 +89,7 @@ func (f FavoriteService) FavoriteAction(userId int64, favoriteRequest request.Fa
 			return
 		}
 
+		// 添加点赞记录
 		err = f.FavoriteRepository.AddFavoriteItem(domain.Like{
 			VideoId: videoId,
 			UserId:  userId,
@@ -93,19 +100,35 @@ func (f FavoriteService) FavoriteAction(userId int64, favoriteRequest request.Fa
 			return
 		}
 
+		// 更新点赞数量
+		f.UserRepository.UpdateFavoriteCount(userId, true)
+
+		// 增加作者的获赞总数
+		f.UserRepository.UpdateTotalFavoritedCount(workerId, true)
+
 	} else if actionType == "2" {
+
+		// 减少点赞数量
 		err := f.VideoRepository.DecreaseFavoriteCount(videoId)
 		if err != nil {
 			log.Printf("FavoriteAction|取消点赞失败|%v", err)
 			begin.Rollback()
 			return
 		}
+
+		// 删除点赞记录
 		err = f.FavoriteRepository.DeleteFavoriteItem(userId, videoId)
 		if err != nil {
 			log.Printf("FavoriteAction|取消点赞失败|%v", err)
 			begin.Rollback()
 			return
 		}
+
+		// 减少点赞数量
+		f.UserRepository.UpdateFavoriteCount(userId, false)
+
+		// 减少作者的获赞总数
+		//f.UserRepository.UpdateTotalFavoritedCount(workerId, false)
 	} else {
 		log.Printf("FavoriteAction|参数错误|actionType=%v", actionType)
 	}
